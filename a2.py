@@ -37,6 +37,8 @@ class AdjList :
         n = Node()
         n.id = 0
         n.degree = 0
+        self.maxDegree = 0
+        self.nodesAtMaxDegree = 1
         # do not add the self loop, as this causes math errors
         #n.edges.append(n)
         self.birthDen = 1.0
@@ -59,9 +61,12 @@ class AdjList :
         self.alist[m].degree += 1
         self.alist[m].edges.append(n)
 
-        # update the probability numerators of m
-        #self.alist[m].birthNum = float(self.alist[m].degree)
-        #self.alist[m].deathNum = float(self.nNodes) - float(self.alist[m].degree)
+        # this block will be used to look at degrees later
+        if self.alist[m].degree > self.maxDegree :
+            self.maxDegree = self.alist[m].degree
+            self.nodesAtMaxDegree = 1
+        elif self.alist[m].degree == self.maxDegree :
+            self.nodesAtMaxDegree += 1
 
         # update the global probability denominators
         self.birthDen = float(2*self.nEdges)
@@ -79,16 +84,15 @@ class AdjList :
         for i in range(rnode.degree):
             #print "DEBUG I=" + str(i)
             # j is set to each node with an edge to m
+            if rnode.edges[i].degree == self.maxDegree :
+                self.nodesAtMaxDegree -= 1
+
             # just make sure we dont remove itself first
             if rnode.id != rnode.edges[i].id:
                 rnode.edges[i].degree -= 1
                 rnode.edges[i].edges.remove(rnode)
                 self.nEdges -= 1
 
-                # update the probability numerators for each node
-                #rnode.edges[i].birthNum = float(rnode.edges[i].degree)
-                #rnode.edges[i].deathNum = float(self.nNodes - rnode.edges[i].degree)
-                
         # then remove the node
         self.alist.remove(self.alist[m])
         self.birthDen = float(2*self.nEdges)
@@ -264,10 +268,22 @@ def main():
     plt.plot(edges3)
     plt.show()
 
-    # choose a random node for deletion and measure the degrees of its neighbors
-    # this will be in a for loop of i=1 to k where k is the max degree
-    # expectation 1: sum of possible outcomes * probability of that outcome
+    # fig 5:
+    # we know that we need a for loop from 1 to k
+    #   k is the max degree
+    # set sum = 0
+    # at each step we take the probability of the node being chosen for deletion
+    #   sum this to prior results, if any, and plot the sum
+    #   i++
+    fig3 = []
+    sum = 0.0
+    for i in range(mygraph2.maxDegree):
+        p = (float(mygraph2.nNodes) - float(i)) / (float(mygraph2.nNodes*mygraph2.nNodes) - float(2*mygraph2.nEdges))
+        p = p + sum
+        fig3.append(p)
 
+    plt.plot(fig3,'ro')
+    plt.show()
     exit(0)
 
 if __name__ == "__main__":
