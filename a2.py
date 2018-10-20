@@ -197,6 +197,7 @@ def performSim(mygraph, simLength, birthP):
     i = 0
     badRun = 1
     fig1data = []
+    fig2data = []
     # loop until we get a run that finishes...
     while badRun == 1:
         badRun = 0
@@ -214,19 +215,24 @@ def performSim(mygraph, simLength, birthP):
             if i == simLength/5 :
                 # record first data point
                 fig1data.append(mygraph.nNodes)
+                fig2data.append(mygraph.nEdges)
             elif i == 2*simLength / 5 :
                 fig1data.append(mygraph.nNodes)
+                fig2data.append(mygraph.nEdges)
             elif i == 3*simLength / 5 :
                 fig1data.append(mygraph.nNodes)
+                fig2data.append(mygraph.nEdges)
             elif i == 4*simLength / 5 :
                 fig1data.append(mygraph.nNodes)
+                fig2data.append(mygraph.nEdges)
 
     # print the statistics
     fig1data.append(mygraph.nNodes)
+    fig2data.append(mygraph.nEdges)
     print "Simulation Completed at turn " + str(i + 1)
     print "Total nodes at completion: " + str(mygraph.nNodes)
     print "Total edges at completion: " + str(mygraph.nEdges)
-    return fig1data
+    return fig1data, fig2data
 
 
 def main():
@@ -243,15 +249,24 @@ def main():
     mygraph2 = AdjList()
     mygraph3 = AdjList()
 
-    vec1 = performSim(mygraph,simLength,0.6)
-    vec2 = performSim(mygraph2,simLength,0.75)
-    vec3 = performSim(mygraph3,simLength,0.9)
+    vec1, edges1 = performSim(mygraph,simLength,0.6)
+    vec2, edges2 = performSim(mygraph2,simLength,0.75)
+    vec3, edges3 = performSim(mygraph3,simLength,0.9)
 
     # plot the graphs using pyplot
     plt.plot(vec1)
     plt.plot(vec2)
     plt.plot(vec3)
     plt.show()
+
+    plt.plot(edges1)
+    plt.plot(edges2)
+    plt.plot(edges3)
+    plt.show()
+
+    # choose a random node for deletion and measure the degrees of its neighbors
+    # this will be in a for loop of i=1 to k where k is the max degree
+    # expectation 1: sum of possible outcomes * probability of that outcome
 
     exit(0)
 
