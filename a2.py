@@ -151,9 +151,9 @@ def RollForEvent(g,t,bp):
             if i < g.nNodes - 1:
                 i += 1
             else:
-                print "\tERROR: Unable to choose birth node connection"
-                print "Final p value: " + str(p)
-                print "final rand value: " + str(nChoice)
+                #print "\tERROR: Unable to choose birth node connection"
+                #print "Final p value: " + str(p)
+                #print "final rand value: " + str(nChoice)
                 found = -1
 
     else: # if event > bp, we chose death
@@ -234,9 +234,32 @@ def performSim(mygraph, simLength, birthP):
     fig1data.append(mygraph.nNodes)
     fig2data.append(mygraph.nEdges)
     print "Simulation Completed at turn " + str(i + 1)
-    print "Total nodes at completion: " + str(mygraph.nNodes)
-    print "Total edges at completion: " + str(mygraph.nEdges)
-    return fig1data, fig2data
+    print "\tTotal nodes at completion: " + str(mygraph.nNodes)
+    print "\tTotal edges at completion: " + str(mygraph.nEdges) + "\n"
+    return mygraph, fig1data, fig2data
+
+
+def CountWithDegree(g):
+    # count the number of nodes with a given degree i
+    degrees = []
+    probs = []
+    totalNodes = g.nNodes
+
+    # initialize our arrays
+    for i in range((g.maxDegree+1)):
+        degrees.append(0)
+        p = (float(totalNodes) - float(i)) / (float(totalNodes * totalNodes) - float(2 * g.nEdges))
+        probs.append(p)
+
+    print "Max degree is: " + str(g.maxDegree)
+    # now count all the degrees
+    for j in range(g.nNodes):
+        # here we count the number of nodes at each degree
+        itr = g.alist[j].degree
+        degrees[itr] += 1
+
+    # note that this creates a index at zero for degrees and probs that should be ignored later
+    return degrees, probs
 
 
 def main():
@@ -253,20 +276,20 @@ def main():
     mygraph2 = AdjList()
     mygraph3 = AdjList()
 
-    vec1, edges1 = performSim(mygraph,simLength,0.6)
-    vec2, edges2 = performSim(mygraph2,simLength,0.75)
-    vec3, edges3 = performSim(mygraph3,simLength,0.9)
+    mygraph, vec1, edges1 = performSim(mygraph,simLength,0.6)
+    mygraph2, vec2, edges2 = performSim(mygraph2,simLength,0.75)
+    mygraph3, vec3, edges3 = performSim(mygraph3,simLength,0.9)
 
     # plot the graphs using pyplot
-    plt.plot(vec1)
-    plt.plot(vec2)
-    plt.plot(vec3)
-    plt.show()
-
-    plt.plot(edges1)
-    plt.plot(edges2)
-    plt.plot(edges3)
-    plt.show()
+    # plt.plot(vec1)
+    # plt.plot(vec2)
+    # plt.plot(vec3)
+    # plt.show()
+    #
+    # plt.plot(edges1)
+    # plt.plot(edges2)
+    # plt.plot(edges3)
+    # plt.show()
 
     # fig 5:
     # we know that we need a for loop from 1 to k
@@ -275,16 +298,28 @@ def main():
     # at each step we take the probability of the node being chosen for deletion
     #   sum this to prior results, if any, and plot the sum
     #   i++
+    print "Finished calculating graphs!"
     fig3 = []
+    degreeList, plist = CountWithDegree(mygraph2)
     sum = 0.0
-    for i in range(mygraph2.maxDegree):
-        p = (float(mygraph2.nNodes) - float(i)) / (float(mygraph2.nNodes*mygraph2.nNodes) - float(2*mygraph2.nEdges))
-        p = p + sum
-        fig3.append(p)
+    #print "DL: " + str(len(degreeList)) + " PL: " + str(len(plist))
+    for i in range(len(degreeList)-1, 1, -1):
+        #print str(i)
+        # get the base probability of deleting this node
+        # multiply this probability by the number of nodes with that degree...
+        p = plist[i] * degreeList[i]
+        sum += p
+        fig3.append(sum)
 
-    plt.plot(fig3,'ro')
+    # reverse the list
+    fig3.reverse()
+    plt.plot(fig3, 'ro')
+    plt.xscale('log')
+    plt.yscale('log')
+    plt.axis([0, 100, 0.00001, 1])
     plt.show()
     exit(0)
+
 
 if __name__ == "__main__":
     main()
