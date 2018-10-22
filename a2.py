@@ -58,8 +58,13 @@ class AdjList :
         self.alist.append(n)
 
         # now update degree of m, and add n to its list of edges
-        self.alist[m].degree += 1
-        self.alist[m].edges.append(n)
+        # first check if it was an island node
+        if self.alist[m].degree == 1 and len(self.alist[m].edges) == 0:
+            # it is an island node, dont change the degree
+            self.alist[m].edges.append(n)
+        else:
+            self.alist[m].degree += 1
+            self.alist[m].edges.append(n)
 
         # this block will be used to look at degrees later
         if self.alist[m].degree > self.maxDegree :
@@ -77,11 +82,16 @@ class AdjList :
         #     print "Warning: Adding a new node set deathDen to 0."
 
     # this removes a node at index m and updates the list
-    def remNode(self,m):
+    def remNode(self, m):
         # first update the degrees and remove the edges
         rnode = self.alist[m]
         self.nNodes -= 1        
         for i in range(rnode.degree):
+            # check to make sure this isnt an island node
+            # if it is, we can jst remove it
+            if len(rnode.edges) == 0:
+                break
+
             #print "DEBUG I=" + str(i)
             # j is set to each node with an edge to m
             if rnode.edges[i].degree == self.maxDegree :
@@ -89,20 +99,15 @@ class AdjList :
 
             # just make sure we dont remove itself first
             if rnode.id != rnode.edges[i].id:
-                rnode.edges[i].degree -= 1
+                if rnode.edges[i].degree > 1: # check if the node is an island
+                    rnode.edges[i].degree -= 1
                 rnode.edges[i].edges.remove(rnode)
                 self.nEdges -= 1
 
         # then remove the node
         self.alist.remove(self.alist[m])
         self.birthDen = float(2*self.nEdges)
-        # if self.birthDen == 0:
-        #     print "\tWarning: birthDen set to 0."
-        #     print "\tNodes: " + str(self.nNodes) + " Edges: " + str(self.nEdges)
         self.deathDen = float((self.nNodes*self.nNodes) - (2*self.nEdges))
-        # if self.deathDen == 0:
-        #     print "\tWarning: deathDen set to 0."
-        #     print "\t# Nodes: " + str(self.nNodes) + ", # edges: " + str(self.nEdges)
 
 
     def printLength(self):
@@ -214,6 +219,8 @@ def performSim(mygraph, simLength, birthP):
                 badRun = 1
                 # reset the graph
                 mygraph = AdjList()
+                fig1data = []
+                fig2data = []
                 break
             # check if we reached a 5th of the input size
             if i == simLength/5 :
@@ -280,16 +287,53 @@ def main():
     mygraph2, vec2, edges2 = performSim(mygraph2,simLength,0.75)
     mygraph3, vec3, edges3 = performSim(mygraph3,simLength,0.9)
 
+    # scale the x values to fit the iterations performed
+    iterVec = [simLength / 5, 2 * simLength / 5, 3 * simLength / 5, 4 * simLength / 5, simLength]
+
+    # calculate the expected lines for graph1
+    eq1 = []
+    eq2 = []
+    eq3 = []
+    for i in range(1, 6):
+        t = i * simLength / 5
+        e1 = (0.6 - 0.4) * t + (2 * 0.4)
+        e2 = (0.75 - 0.25) * t + (2 * 0.25)
+        e3 = (0.9 - 0.1) * t + (2 * 0.1)
+        eq1.append(e1)
+        eq2.append(e2)
+        eq3.append(e3)
     # plot the graphs using pyplot
-    # plt.plot(vec1)
-    # plt.plot(vec2)
-    # plt.plot(vec3)
-    # plt.show()
-    #
-    # plt.plot(edges1)
-    # plt.plot(edges2)
-    # plt.plot(edges3)
-    # plt.show()
+    # first plot expected graphs
+    plt.plot(iterVec, eq1)
+    plt.plot(iterVec, eq2)
+    plt.plot(iterVec, eq3)
+    # now plot experiment results
+    plt.plot(iterVec, vec1, 'b^')
+    plt.plot(iterVec, vec2, 'yo')
+    plt.plot(iterVec, vec3, 'gs')
+    plt.show()
+
+    # calculate the expected lines for graph2
+    eq1 = []
+    eq2 = []
+    eq3 = []
+    for i in range(1, 6):
+        t = i * simLength / 5
+        e1 = 0.6 * (0.6 - 0.4) * t
+        e2 = 0.75 * (0.75 - 0.25) * t
+        e3 = 0.9 * (0.9 - 0.1) * t
+        eq1.append(e1)
+        eq2.append(e2)
+        eq3.append(e3)
+    # first plot expected graphs
+    plt.plot(iterVec, eq1)
+    plt.plot(iterVec, eq2)
+    plt.plot(iterVec, eq3)
+    # here are the experimental results
+    plt.plot(iterVec, edges1, 'b^')
+    plt.plot(iterVec, edges2, 'yo')
+    plt.plot(iterVec, edges3, 'gs')
+    plt.show()
 
     # fig 5:
     # we know that we need a for loop from 1 to k
@@ -300,20 +344,44 @@ def main():
     #   i++
     print "Finished calculating graphs!"
     fig3 = []
+    fig3x = []
     degreeList, plist = CountWithDegree(mygraph2)
     sum = 0.0
     #print "DL: " + str(len(degreeList)) + " PL: " + str(len(plist))
-    for i in range(len(degreeList)-1, 1, -1):
+    for i in range(len(degreeList)-1, 0, -1):
         #print str(i)
         # get the base probability of deleting this node
         # multiply this probability by the number of nodes with that degree...
         p = plist[i] * degreeList[i]
         sum += p
-        fig3.append(sum)
+        if p != 0:
+            fig3x.append(i)
+            fig3.append(sum)
 
-    # reverse the list
+        # this should always print ~1
+        #if i == 1:
+        #    print str(sum)
+
+    # reverse the lists
     fig3.reverse()
-    plt.plot(fig3, 'ro')
+    fig3x.reverse()
+
+    # now calculate the expected values of the third graph
+    eq1 = []
+    eq1x = []
+    sum = 0.0
+    for i in range(len(degreeList)-1, 0, -1):
+        e1 = -1 - (2*0.75 / (2*0.75 - 1))
+        e2 = pow(i, e1)
+        sum += e2
+        eq1.append(sum)
+        eq1x.append(i)
+    # first plot expected graphs
+    eq1.reverse()
+    eq1x.reverse()
+    plt.plot(eq1x, eq1)
+
+    plt.plot(fig3x, fig3, 'ro')
     plt.xscale('log')
     plt.yscale('log')
     plt.axis([0, 100, 0.00001, 1])
