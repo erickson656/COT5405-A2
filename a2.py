@@ -370,20 +370,22 @@ def main():
     eq1 = []
     eq1x = []
     sum = 0.0
+    e1 = (-1.0) - (2.0 * 0.75 / (2.0 * 0.75 - 1.0))
+    grain = 2
     for i in range(len(degreeList)-1, 0, -1):
-        e1 = -1 - (2*0.75 / (2*0.75 - 1))
-        e2 = pow(i, e1)
-        sum += e2
-        eq1.append(sum)
-        eq1x.append(i)
+        for j in range(grain): # this makes the approximation more accurate
+            e2 = pow(i - j / float(grain), e1)
+            sum += e2
+            eq1.append(sum)
+            eq1x.append(i - j / float(grain))
+
     # first plot expected graphs
     eq1.reverse()
     eq1x.reverse()
-    plt.plot(eq1x, eq1)
-
-    plt.plot(fig3x, fig3, 'ro')
     plt.xscale('log')
     plt.yscale('log')
+    plt.plot(eq1x, eq1, 'b')
+    plt.plot(fig3x, fig3, 'ro')
     plt.axis([0, 100, 0.00001, 1])
     plt.show()
     exit(0)
